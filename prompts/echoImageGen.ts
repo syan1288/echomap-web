@@ -2,7 +2,7 @@
  * Echo Map 建筑图生图：user 侧文案；system 侧见 `buildingStyle.ts` 的 buildEchoImageSystemInstruction。
  */
 
-export { buildEchoImageSystemInstruction, DEFAULT_BUILDING_STYLE, type BuildingStyleId } from './buildingStyle';
+export { buildEchoImageSystemInstruction, DEFAULT_BUILDING_STYLE, type BuildingStyleId } from './buildingStyle.js';
 
 export function buildInitialUserPrompt(buildingName?: string): string {
   const trimmed = buildingName?.trim();
