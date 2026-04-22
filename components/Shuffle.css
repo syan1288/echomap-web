@@ -1,0 +1,37 @@
+/* Shuffle：由父级继承字号与字体；初始隐藏直至布局完成 */
+.shuffle-parent {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  will-change: transform;
+  line-height: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: none;
+  visibility: hidden;
+}
+
+.shuffle-parent.is-ready {
+  visibility: visible;
+}
+
+.shuffle-char-wrapper {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: baseline;
+  position: relative;
+}
+
+.shuffle-char-wrapper > span {
+  display: inline-flex;
+  will-change: transform;
+}
+
+.shuffle-char {
+  line-height: inherit;
+  display: inline-block;
+  text-align: center;
+}

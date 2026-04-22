@@ -1,0 +1,5 @@
+{
+  "name": "Pixel Travel Map",
+  "description": "An interactive map where users can upload travel photos. The app automatically places a 3D voxel model of the landmark on the map based on the photo's location data, creating a visual travel diary.",
+  "requestFramePermissions": []
+}
