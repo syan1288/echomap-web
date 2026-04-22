@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleGeocode } from '../server/echoApiCore';
-import { applyCors, getJsonInput, handleOptions } from '../server/vercelHandlerUtils';
+import { handleGeocode } from '../server/echoApiCore.js';
+import { applyCors, getJsonInput, handleOptions } from '../server/vercelHandlerUtils.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (handleOptions(req, res)) return;

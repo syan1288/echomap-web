@@ -5,12 +5,12 @@ import { GoogleGenAI, Modality } from '@google/genai';
 import path from 'node:path';
 import { appendFileSync, existsSync, mkdirSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { buildInitialUserPrompt, buildEditUserPrompt } from '../prompts/echoImageGen';
+import { buildInitialUserPrompt, buildEditUserPrompt } from '../prompts/echoImageGen.js';
 import {
   buildEchoImageSystemInstruction,
   DEFAULT_BUILDING_STYLE,
   isBuildingStyleId,
-} from '../prompts/buildingStyle';
+} from '../prompts/buildingStyle.js';
 
 export type EchoApiEnv = {
   GEMINI_API_KEY?: string;

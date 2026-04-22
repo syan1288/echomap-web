@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleEchoHealth } from '../server/echoApiCore';
-import { applyCors, handleOptions } from '../server/vercelHandlerUtils';
+import { handleEchoHealth } from '../server/echoApiCore.js';
+import { applyCors, handleOptions } from '../server/vercelHandlerUtils.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (handleOptions(req, res)) return;

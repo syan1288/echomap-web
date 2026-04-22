@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleGenerate } from '../server/echoApiCore';
-import { applyCors, getJsonInput, handleOptions } from '../server/vercelHandlerUtils';
+import { handleGenerate } from '../server/echoApiCore.js';
+import { applyCors, getJsonInput, handleOptions } from '../server/vercelHandlerUtils.js';
 
 export const config = {
   maxDuration: 120,
