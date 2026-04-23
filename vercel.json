@@ -4,14 +4,7 @@
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "functions": {
-    "api/echo-health.ts": {
-      "includeFiles": ["server/**", "prompts/**"]
-    },
-    "api/geocode.ts": {
-      "includeFiles": ["server/**", "prompts/**"]
-    },
     "api/generate.ts": {
-      "includeFiles": ["server/**", "prompts/**"],
       "maxDuration": 120,
       "memory": 1024
     }
