@@ -99,18 +99,16 @@ function isBuildingStyleId(s: string | undefined | null): s is BuildingStyleId {
 }
 
 function buildEchoImageSystemInstruction(style: BuildingStyleId = DEFAULT_BUILDING_STYLE): string {
-  const stylePrompts: Record<BuildingStyleId, string> = {
-    flat:
-      '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影。扁平插画风，svg（300dpi），细节清晰。',
-    pixel:
-      '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影，pixel art，色块32px。',
-    ink:
-      '针对图中主体建筑，创建一个3D 等距视角建筑。建筑应被单独分离，无任何背景，无阴影，png (8k)，ink wash，baimiao, highly detailed，vibrant but elegant colors。',
-    healing:
-      '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影。治愈绘本插画风，线条随性松散，marker sketch+ charcoal 质感。',
+  const styleFragments: Record<BuildingStyleId, string> = {
+    flat: '风格：扁平插画风；svg（300dpi）的视觉等价效果；细节清晰。',
+    pixel: '风格：pixel art；色块约 32px 量级感。',
+    ink: '风格：png (8k) 观感；ink wash；baimiao；细节丰富；色彩鲜明且雅致。',
+    healing: '风格：png (300px) 观感；治愈绘本插画风；线条随性松散；marker sketch + charcoal。',
   };
   return [
-    stylePrompts[style],
+    '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影。',
+    '可在保持单主体清晰可读前提下，轻微变化等轴测观察朝向（例如略偏左前与略偏右前交替），使地图上多个建筑不会完全同一视角。',
+    styleFragments[style],
     '只保留建筑主体本身，四周留白。',
     '严禁出现任何底座、白色矩形托底、地台、地面切片、平台、路面、阴影或漂浮投影。',
     '输出为纯白背景（#FFFFFF），方便后续自动抠图。No cast shadows, text, or watermark.',
