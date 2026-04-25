@@ -18,26 +18,21 @@ export function isBuildingStyleId(s: string | undefined | null): s is BuildingSt
   return s != null && (BUILDING_STYLE_IDS as readonly string[]).includes(s);
 }
 
-/** 通用 system 基底（中文） */
-const ECHO_SYSTEM_BASE_CN =
-  '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影。';
-
-/** 等轴测朝向可略作变化以增加地图多样性 */
-const ECHO_ANGLE_VARIETY_CN =
-  '可在保持单主体清晰可读前提下，轻微变化等轴测观察朝向（例如略偏左前与略偏右前交替），使地图上多个建筑不会完全同一视角。';
-
-/** 各风格在基底上的补充说明（用户给定文案整理） */
-const STYLE_FRAGMENT_CN: Record<BuildingStyleId, string> = {
-  flat: '风格：扁平插画风；svg（300dpi）的视觉等价效果；细节清晰。',
-  pixel: '风格：pixel art；色块约 32px 量级感。',
-  ink: '风格：png (8k) 观感；ink wash；baimiao；细节丰富；色彩鲜明且雅致。',
-  healing: '风格：png (300px) 观感；治愈绘本插画风；线条随性松散；marker sketch + charcoal。',
+const STYLE_PROMPTS: Record<BuildingStyleId, string> = {
+  flat:
+    '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影。扁平插画风，svg（300dpi），细节清晰。',
+  pixel:
+    '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影，pixel art，色块32px。',
+  ink:
+    '针对图中主体建筑，创建一个3D 等距视角建筑。建筑应被单独分离，无任何背景，无阴影，png (8k)，ink wash，baimiao, highly detailed，vibrant but elegant colors。',
+  healing:
+    '针对图中主体建筑，创建一个3D等轴测视角建筑。建筑应被单独分离，无任何背景，无阴影。治愈绘本插画风，线条随性松散，marker sketch+ charcoal 质感。',
 };
 
-/** 与客户端抠白底流程兼容的技术约束（输出仍为栅格图） */
-const ECHO_MATTING_AND_OUTPUT_EN = [
-  'Output one square raster image (PNG-style), not actual SVG file data.',
-  'Non-subject pixels must be uniform pure white (#FFFFFF) for background removal: no grey card, pedestal, road slab, or soft vignette.',
+const ECHO_OUTPUT_GUARDRAILS = [
+  '只保留建筑主体本身，四周留白。',
+  '严禁出现任何底座、白色矩形托底、地台、地面切片、平台、路面、阴影或漂浮投影。',
+  '输出为纯白背景（#FFFFFF），方便后续自动抠图。',
   'No cast shadows, text, or watermark.',
 ].join(' ');
 
@@ -46,10 +41,5 @@ const ECHO_MATTING_AND_OUTPUT_EN = [
  */
 export function buildEchoImageSystemInstruction(style: BuildingStyleId = DEFAULT_BUILDING_STYLE): string {
   const sid = isBuildingStyleId(style) ? style : DEFAULT_BUILDING_STYLE;
-  return [
-    ECHO_SYSTEM_BASE_CN,
-    ECHO_ANGLE_VARIETY_CN,
-    STYLE_FRAGMENT_CN[sid],
-    ECHO_MATTING_AND_OUTPUT_EN,
-  ].join(' ');
+  return [STYLE_PROMPTS[sid], ECHO_OUTPUT_GUARDRAILS].join(' ');
 }

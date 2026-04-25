@@ -186,16 +186,65 @@ const processImageForTransparency = (imageUrl: string): Promise<ImageProcessingR
       try {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
-        
-        const bgR = data[0], bgG = data[1], bgB = data[2];
+
+        const corners = [
+          [0, 0],
+          [canvas.width - 1, 0],
+          [0, canvas.height - 1],
+          [canvas.width - 1, canvas.height - 1],
+        ] as const;
+        const cornerColors = corners.map(([x, y]) => {
+          const idx = (y * canvas.width + x) * 4;
+          return [data[idx], data[idx + 1], data[idx + 2]] as const;
+        });
+        const bgR = Math.round(cornerColors.reduce((sum, [r]) => sum + r, 0) / cornerColors.length);
+        const bgG = Math.round(cornerColors.reduce((sum, [, g]) => sum + g, 0) / cornerColors.length);
+        const bgB = Math.round(cornerColors.reduce((sum, [, , b]) => sum + b, 0) / cornerColors.length);
         const thresholdSquared = COLOR_DISTANCE_THRESHOLD * COLOR_DISTANCE_THRESHOLD;
+        const visited = new Uint8Array(canvas.width * canvas.height);
+        const queue: number[] = [];
+
+        const nearWhite = (r: number, g: number, b: number) => r >= 238 && g >= 238 && b >= 238;
+        const nearBackground = (r: number, g: number, b: number) =>
+          (r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2 < thresholdSquared || nearWhite(r, g, b);
+
+        const pushIfMatch = (x: number, y: number) => {
+          if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+          const pos = y * canvas.width + x;
+          if (visited[pos]) return;
+          const idx = pos * 4;
+          if (!nearBackground(data[idx], data[idx + 1], data[idx + 2])) return;
+          visited[pos] = 1;
+          queue.push(pos);
+        };
 
         let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
 
+        for (let x = 0; x < canvas.width; x++) {
+          pushIfMatch(x, 0);
+          pushIfMatch(x, canvas.height - 1);
+        }
+        for (let y = 0; y < canvas.height; y++) {
+          pushIfMatch(0, y);
+          pushIfMatch(canvas.width - 1, y);
+        }
+
+        while (queue.length) {
+          const pos = queue.shift()!;
+          const idx = pos * 4;
+          data[idx + 3] = 0;
+          const x = pos % canvas.width;
+          const y = Math.floor(pos / canvas.width);
+          pushIfMatch(x - 1, y);
+          pushIfMatch(x + 1, y);
+          pushIfMatch(x, y - 1);
+          pushIfMatch(x, y + 1);
+        }
+
         for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] === 0) continue;
           const r = data[i], g = data[i + 1], b = data[i + 2];
-          const distanceSquared = (r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2;
-          if (distanceSquared < thresholdSquared) {
+          if (nearWhite(r, g, b)) {
             data[i + 3] = 0;
           }
         }
@@ -1772,11 +1821,13 @@ const App: React.FC = () => {
           homeStatusSlot={homeStatusSlot}
           galleryStatsSlot={galleryStatsSlot}
           footerSlot={
-            <AuthPanel
-              cloudBusy={cloudBusy}
-              onPullFromCloud={handlePullFromCloud}
-              onPushAllToCloud={handlePushAllToCloud}
-            />
+            echoTab === 'home' ? (
+              <AuthPanel
+                cloudBusy={cloudBusy}
+                onPullFromCloud={handlePullFromCloud}
+                onPushAllToCloud={handlePushAllToCloud}
+              />
+            ) : null
           }
         />
 
