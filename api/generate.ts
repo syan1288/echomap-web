@@ -116,6 +116,24 @@ function buildEchoImageSystemInstruction(style: BuildingStyleId = DEFAULT_BUILDI
 }
 
 function buildInitialUserPrompt(buildingName?: string): string {
+  return buildInitialUserPromptWithStyle(buildingName, DEFAULT_BUILDING_STYLE);
+}
+
+function buildUserStyleReminder(style: BuildingStyleId): string {
+  switch (style) {
+    case 'pixel':
+      return 'Style reminder: produce unmistakable pixel art with visible blocky 32px-style color cells. Avoid realistic rendering, soft gradients, photographic lighting, and smooth bridge render aesthetics.';
+    case 'ink':
+      return 'Style reminder: produce clear ink wash / baimiao illustration aesthetics. Avoid photorealism, architectural rendering, camera-like skies, realistic water surfaces, and soft 3D shading.';
+    case 'healing':
+      return 'Style reminder: produce a healing storybook illustration with loose hand-drawn lines, marker sketch, and charcoal texture. Avoid realistic rendering and avoid hard-edged CAD-like structure rendering.';
+    case 'flat':
+    default:
+      return 'Style reminder: produce flat illustration art with clean simplified shapes and graphic detail. Avoid photorealism, realistic materials, realistic skies, and architectural rendering style.';
+  }
+}
+
+function buildInitialUserPromptWithStyle(buildingName: string | undefined, style: BuildingStyleId): string {
   const trimmed = buildingName?.trim();
   const context = trimmed
     ? `The traveler labeled this building or place as: "${trimmed}". If this clearly refers to a famous landmark, use public-domain architectural knowledge to refine proportions, roofline, and materials while matching the uploaded photo as the primary reference. If the label is ambiguous or not a landmark, rely on the photo only.`
@@ -123,14 +141,15 @@ function buildInitialUserPrompt(buildingName?: string): string {
   return [
     'Task: From the provided travel photo, create one depiction of the main building or object only, following the system style.',
     context,
+    buildUserStyleReminder(style),
     'Preserve the subject identity from the photo; do not add unrelated scenery, roads, or ground geometry.',
     'Do not place the building on any base slab, white rectangle, platform, road slice, podium, shadow plane, or floating ground.',
   ].join(' ');
 }
 
-function buildEditUserPrompt(editInstruction: string, buildingName?: string): string {
+function buildEditUserPrompt(editInstruction: string, buildingName?: string, style: BuildingStyleId = DEFAULT_BUILDING_STYLE): string {
   const extra = buildingName?.trim() ? ` Context label (optional): "${buildingName.trim()}".` : '';
-  return `${editInstruction.trim()}${extra} Keep the Echo Map style rules from your system instructions.`;
+  return `${editInstruction.trim()}${extra} ${buildUserStyleReminder(style)} Keep the Echo Map style rules from your system instructions.`;
 }
 
 function extractInlineImageFromResponse(response: {
@@ -230,10 +249,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     }
 
     const imageModel = resolveImageModel(env);
-    const userText = body.userPrompt?.trim()
-      ? buildEditUserPrompt(body.userPrompt, body.buildingName)
-      : buildInitialUserPrompt(body.buildingName);
     const buildingStyle = isBuildingStyleId(body.buildingStyle) ? body.buildingStyle : DEFAULT_BUILDING_STYLE;
+    const userText = body.userPrompt?.trim()
+      ? buildEditUserPrompt(body.userPrompt, body.buildingName, buildingStyle)
+      : buildInitialUserPromptWithStyle(body.buildingName, buildingStyle);
 
     const response = await ai.models.generateContent({
       model: imageModel,
@@ -257,7 +276,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       },
     });
 
-    const extracted = extractInlineImageFromResponse(response as Record<string, unknown>);
+    const extracted = extractInlineImageFromResponse(response as unknown as {
+      promptFeedback?: { blockReason?: string; blockReasonMessage?: string };
+      candidates?: Array<{
+        finishReason?: string;
+        finishMessage?: string;
+        content?: { parts?: Array<Record<string, unknown>> };
+      }>;
+      data?: string;
+      text?: string;
+    });
     res.statusCode = 'error' in extracted ? 500 : 200;
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-store');
